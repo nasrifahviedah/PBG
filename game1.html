@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Urutkan Kata Bahasa Inggris</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #001f3f; /* biru tua */
+      color: #0b3d0b; /* hijau tua */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      background-color: #a8e6a1; /* hijau muda */
+      color: #0b3d0b;
+      padding: 10px 20px;
+      border-radius: 8px;
+    }
+
+    .word-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+      background-color: #a8e6a1;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .word {
+      background-color: #0b3d0b;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: grab;
+      user-select: none;
+      transition: background 0.3s;
+    }
+
+    .word:active {
+      cursor: grabbing;
+      background-color: #064f06;
+    }
+
+    textarea {
+      width: 80%;
+      height: 100px;
+      border: 2px solid #0b3d0b;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 16px;
+      resize: none;
+      margin-bottom: 10px;
+      background-color: white;
+      color: #0b3d0b;
+    }
+
+    .button-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background-color: #0b3d0b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #064f06;
+    }
+
+    .feedback {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+      color: white;
+    }
+
+    .success { color: lightgreen; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Urutkan Kata Bahasa Inggris</h1>
+  <p style="color:white">Drag dan drop kata-kata berikut ke dalam kotak agar menjadi kalimat yang benar:</p>
+
+  <div class="word-container" id="wordContainer"></div>
+
+  <textarea id="sentenceArea" placeholder="Taruh kata di sini..."></textarea><br>
+
+  <div class="button-container">
+    <button id="checkButton">Hasil</button>
+    <button id="resetButton">Reset</button>
+  </div>
+
+  <div id="feedback" class="feedback"></div>
+
+  <script>
+    const correctSentence = "Iamgoingtothemarket"; // tanpa strip
+    const words = ["I", "am", "going", "to", "the", "market"];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    const container = document.getElementById('wordContainer');
+    const textArea = document.getElementById('sentenceArea');
+    const feedback = document.getElementById('feedback');
+
+    function initGame() {
+      container.innerHTML = '';
+      textArea.value = '';
+      feedback.textContent = '';
+
+      let shuffledWords = shuffle([...words]);
+      shuffledWords.forEach(word => {
+        const span = document.createElement('div');
+        span.textContent = word;
+        span.className = 'word';
+        span.draggable = true;
+
+        span.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text', word);
+          e.target.classList.add('dragging');
+        });
+
+        span.addEventListener('dragend', e => {
+          e.target.classList.remove('dragging');
+        });
+
+        container.appendChild(span);
+      });
+    }
+
+    textArea.addEventListener('dragover', e => e.preventDefault());
+
+    textArea.addEventListener('drop', e => {
+      e.preventDefault();
+      const word = e.dataTransfer.getData('text');
+      if (word) {
+        // hapus kata yang sudah dipindahkan
+        const remaining = Array.from(container.children).filter(w => w.textContent !== word);
+        container.innerHTML = '';
+        remaining.forEach(w => container.appendChild(w));
+        // tambahkan tanpa strip
+        textArea.value += word;
+      }
+    });
+
+    document.getElementById('checkButton').addEventListener('click', () => {
+      const userSentence = textArea.value.trim();
+      if (userSentence === correctSentence) {
+        feedback.textContent = 'Hebat jawaban anda benar!';
+        feedback.className = 'feedback success';
+      } else {
+        feedback.textContent = 'Maaf jawaban Anda salah, silahkan ulangi lagi';
+        feedback.className = 'feedback error';
+      }
+    });
+
+    document.getElementById('resetButton').addEventListener('click', initGame);
+
+    initGame();
+  </script>
+</body>
+</html>
