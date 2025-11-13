@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teks Rumpang - Latihan Mendengarkan</title>
+  <style>
+    :root{
+      --bg: #ffeef6;
+      --card: #ffd6ea;
+      --accent: #ff66b2;
+      --accent-dark: #e04488;
+      --text: #2b2b2b;
+      --muted: #5b5b5b;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial; background:var(--bg); color:var(--text); padding:28px;}
+    .container{max-width:820px;margin:18px auto;padding:22px;background:linear-gradient(180deg, rgba(255,214,234,0.9), rgba(255,230,242,0.95)); border-radius:14px; box-shadow:0 6px 24px rgba(220,20,100,0.06); border:1px solid rgba(255,182,201,0.6)}
+    h1{font-size:1.4rem;margin:0 0 8px;color:var(--accent-dark)}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .card{background:var(--card);padding:16px;border-radius:12px;border:1px solid rgba(255,182,201,0.6)}
+    .audio-wrap{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    audio{outline:none;width:100%}
+    form{margin-top:12px}
+    .sentence{font-size:1.05rem;margin-bottom:12px}
+    .blank{display:inline-block;vertical-align:middle}
+    input.blank-input{width:110px;padding:8px 10px;border-radius:8px;border:2px solid rgba(255,105,180,0.25);background:transparent;font-size:0.98rem}
+    input.blank-input:focus{outline:none;border-color:var(--accent)}
+    .controls{display:flex;gap:10px;margin-top:16px}
+    button{cursor:pointer;padding:10px 14px;border-radius:10px;border:0;font-weight:600}
+    button#check{background:var(--accent);color:white}
+    button#reset{background:transparent;border:2px solid var(--accent);color:var(--accent)}
+    .feedback{margin-top:14px;padding:12px;border-radius:10px}
+    .feedback.ok{background:linear-gradient(90deg,#eafaf2,#e8fff6);border:1px solid #b9f0d6;color:#066a33}
+    .feedback.wrong{background:linear-gradient(90deg,#fff0f7,#ffeef6);border:1px solid #ffccdd;color:#8a1b4a}
+    ul.error-list{margin:8px 0 0 18px}
+    .answer-key{margin-top:12px;padding:10px;background:rgba(255,255,255,0.6);border-radius:8px;border:1px dashed rgba(255,105,180,0.12)}
+    .small{font-size:0.9rem;color:var(--muted)}
+    footer{margin-top:16px;font-size:0.9rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Teks Rumpang — Latihan Mendengarkan</h1>
+    <p class="lead">Instruksi: Dengarkan rekaman, lalu lengkapi teks rumpang dengan jawaban yang benar. Ketik jawaban, lalu tekan tombol <strong>Hasil</strong>.</p>
+
+    <div class="card">
+      <div class="audio-wrap">
+        <audio id="audio" controls preload="none">
+          <source src="https://nasrifahviedah.github.io/PBG/Audio2.mp3" type="audio/mpeg">
+          Browser Anda tidak mendukung audio.
+        </audio>
+      </div>
+
+      <form id="clozeForm" onsubmit="return false;">
+        <p class="sentence">Hello, my name <span class="blank">[1] <input class="blank-input" id="a1" inputmode="text" autocomplete="off" aria-label="jawaban 1"></span> Nina. I was <span class="blank">[2] <input class="blank-input" id="a2" inputmode="text" autocomplete="off" aria-label="jawaban 2"></span> in Kudus on November 13, 2025. I am <span class="blank">[3] <input class="blank-input" id="a3" inputmode="text" autocomplete="off" aria-label="jawaban 3"></span> and have <span class="blank">[4] <input class="blank-input" id="a4" inputmode="text" autocomplete="off" aria-label="jawaban 4"></span> children. I live in Bae <span class="blank">[5] <input class="blank-input" id="a5" inputmode="text" autocomplete="off" aria-label="jawaban 5"></span>, Kudus. I work at MTs NU Miftahul Falah Cendono Dawe Kudus as a <span class="blank">[6] <input class="blank-input" id="a6" inputmode="text" autocomplete="off" aria-label="jawaban 6"></span>. My hobby is <span class="blank">[7] <input class="blank-input" id="a7" inputmode="text" autocomplete="off" aria-label="jawaban 7"></span>.</p>
+
+        <div class="controls">
+          <button id="check">Hasil</button>
+          <button id="reset" type="button">Reset</button>
+        </div>
+
+        <div id="feedbackArea" aria-live="polite"></div>
+
+        <div class="answer-key small" id="answerKey" style="display:none">
+          <strong>Jawaban benar:</strong>
+          <div>1 = is, 2 = born, 3 = married, 4 = two, 5 = village, 6 = teacher, 7 = cooking</div>
+        </div>
+
+      </form>
+
+    </div>
+
+    <footer>Terima kasih — Latihan dibuat oleh guru Anda.</footer>
+  </div>
+
+  <script>
+    const correct = {
+      a1: 'is',
+      a2: 'born',
+      a3: 'married',
+      a4: 'two',
+      a5: 'village',
+      a6: 'teacher',
+      a7: 'cooking'
+    };
+
+    const inputs = ['a1','a2','a3','a4','a5','a6','a7'].map(id => document.getElementById(id));
+    const feedbackArea = document.getElementById('feedbackArea');
+    const answerKey = document.getElementById('answerKey');
+    const checkBtn = document.getElementById('check');
+    const resetBtn = document.getElementById('reset');
+
+    function normalize(s){ return (s||'').toString().trim().toLowerCase(); }
+
+    checkBtn.addEventListener('click', function (e){
+      e.preventDefault();
+      feedbackArea.innerHTML = '';
+      answerKey.style.display = 'none';
+
+      const wrong = [];
+      const details = [];
+      inputs.forEach(input => {
+        const id = input.id;
+        const value = normalize(input.value);
+        const expected = correct[id];
+        if(value === expected){
+          input.style.borderColor = 'rgba(0,150,100,0.6)';
+        } else {
+          wrong.push(id);
+          details.push({id, given: input.value, expected});
+          input.style.borderColor = 'rgba(200,30,100,0.7)';
+        }
+      });
+
+      if(wrong.length === 0){
+        const ok = document.createElement('div');
+        ok.className = 'feedback ok';
+        ok.textContent = 'Hebat. Jawaban anda benar';
+        feedbackArea.appendChild(ok);
+      } else {
+        const err = document.createElement('div');
+        err.className = 'feedback wrong';
+        const heading = document.createElement('div');
+        heading.textContent = 'Maaf. Jawaban anda salah';
+        err.appendChild(heading);
+
+        const ul = document.createElement('ul');
+        ul.className = 'error-list';
+        details.forEach(d => {
+          const li = document.createElement('li');
+          li.innerHTML = `Nomor ${d.id.slice(1)}: Anda jawab "<strong>${escapeHtml(d.given||'')}</strong>" — Jawaban yang benar: "<strong>${escapeHtml(d.expected)}</strong>"`;
+          ul.appendChild(li);
+        });
+        err.appendChild(ul);
+        feedbackArea.appendChild(err);
+
+        // show answer key to help learning
+        answerKey.style.display = 'block';
+      }
+
+      // move focus to feedback for screen readers
+      feedbackArea.focus && feedbackArea.focus();
+    });
+
+    resetBtn.addEventListener('click', function (){
+      feedbackArea.innerHTML = '';
+      answerKey.style.display = 'none';
+      inputs.forEach(i => { i.value = ''; i.style.borderColor = 'rgba(255,105,180,0.25)'; });
+      document.getElementById('audio').pause();
+      document.getElementById('audio').currentTime = 0;
+    });
+
+    function escapeHtml(text){
+      if(!text) return '';
+      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>
